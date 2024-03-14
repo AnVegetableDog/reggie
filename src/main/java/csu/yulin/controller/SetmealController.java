@@ -12,6 +12,8 @@ import csu.yulin.service.SetmealService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +38,7 @@ public class SetmealController {
      * @return
      */
     @PostMapping
+    @CachePut(value = "setmeal", key = "\"setmeal_\"+#setmeal.getCategoryId()")
     public R<String> save(@RequestBody SetmealDto setmealDto) {
         setmealService.saveWithDish(setmealDto);
         return R.success("新增套餐成功");
@@ -88,12 +91,12 @@ public class SetmealController {
      * @return
      */
     @GetMapping("/list")
+    @Cacheable(value = "setmeal", key = "\"setmeal_\"+#setmeal.getCategoryId()")
     public R<List<Setmeal>> list(Setmeal setmeal) {
         LambdaQueryWrapper<Setmeal> queryWrapper = Wrappers.lambdaQuery(Setmeal.class)
                 .eq(setmeal.getCategoryId() != null, Setmeal::getCategoryId, setmeal.getCategoryId())
                 .eq(Setmeal::getStatus, 1)
                 .orderByDesc(Setmeal::getUpdateTime);
-
         List<Setmeal> setmealList = setmealService.list(queryWrapper);
 
         return R.success(setmealList);

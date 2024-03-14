@@ -7,6 +7,7 @@ import csu.yulin.entity.AddressBook;
 import csu.yulin.service.AddressBookService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,6 +69,7 @@ public class AddressBookController {
      * 查询默认地址
      */
     @GetMapping("default")
+    @CachePut
     public R<AddressBook> getDefault() {
         //SQL:select * from address_book where user_id = ? and is_default = 1
         AddressBook addressBook = addressBookService.getOne(Wrappers.lambdaQuery(AddressBook.class)

@@ -3,6 +3,7 @@ package csu.yulin.controller;
 import csu.yulin.common.R;
 import csu.yulin.entity.User;
 import csu.yulin.service.UserService;
+import csu.yulin.utils.RedisCache;
 import csu.yulin.utils.ValidateCodeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -20,16 +22,20 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
+    @Autowired
+    private RedisCache redisCache;
 
     @PostMapping("/sendMsg")
-    public R<String> sendMeg(@RequestBody User user, HttpSession session) {
+    public R<String> sendMeg(@RequestBody User user) {
 
         String phone = user.getPhone();
         String code = ValidateCodeUtils.generateValidateCode(6).toString();
         log.info("验证码是: {}", code);
 
+        redisCache.setCacheObject(phone,"123456",5, TimeUnit.MINUTES);
+
 //        session.setAttribute(phone, code);
-        session.setAttribute(phone, "123456");
+//        session.setAttribute(phone, "123456");
 //        try {
 //            new AliyunSmsUtil().sendCode(phone, code);
 //        } catch (Exception e) {
@@ -43,13 +49,16 @@ public class UserController {
         String phone = map.get("phone");
         String code = map.get("code");
 
-        Object trueCode = session.getAttribute(phone);
-        if (trueCode != null && trueCode.toString().equals(code)) {
+//        Object trueCode = session.getAttribute(phone);
+
+        String trueCode = redisCache.getCacheObject(phone);
+
+        if (trueCode != null && trueCode.equals(code)) {
             User user = userService.loginOrRegister(phone);
             session.setAttribute("user", user.getId());
 
             return R.success(user);
         }
-        return R.error("验证码错误!");
+        return R.error("验证码已过期或者错误!");
     }
 }

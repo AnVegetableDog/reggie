@@ -1,8 +1,0 @@
-package csu.yulin.service;
-
-import com.baomidou.mybatisplus.extension.service.IService;
-import csu.yulin.entity.DishFlavor;
-
-public interface DishFlavorService extends IService<DishFlavor> {
-
-}

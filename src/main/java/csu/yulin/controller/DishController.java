@@ -11,14 +11,15 @@ import csu.yulin.entity.DishFlavor;
 import csu.yulin.service.CategoryService;
 import csu.yulin.service.DishFlavorService;
 import csu.yulin.service.DishService;
+import csu.yulin.utils.RedisCache;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,6 +34,9 @@ public class DishController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private RedisCache redisCache;
+
     /**
      * 新增菜品
      *
@@ -41,6 +45,9 @@ public class DishController {
      */
     @PostMapping
     public R<String> save(@RequestBody DishDto dishDto) {
+        //当新增一个菜品的时候,缓存中的菜品和套餐信息都应该被删除
+        String key = "dish_" + dishDto.getCategoryId();
+        redisCache.deleteObject(key);
 
         dishService.saveWithFlavor(dishDto);
         return R.success("新增菜品成功");
@@ -112,6 +119,10 @@ public class DishController {
      */
     @PutMapping
     public R<String> update(@RequestBody DishDto dishDto) {
+        //当一个菜品信息被更新的时候,缓存中的菜品和套餐信息都应该被删除
+        String key = "dish_" + dishDto.getCategoryId();
+        redisCache.deleteObject(key);
+
         dishService.updateWithFlavor(dishDto);
         return R.success("更新菜品成功");
     }
@@ -124,6 +135,13 @@ public class DishController {
      */
     @GetMapping("/list")
     public R<List<DishDto>> list(Dish dish) {
+        String key = "dish_" + dish.getCategoryId();
+        //先从缓存中获取数据
+        List<DishDto> dishDtoList = redisCache.getCacheList(key);
+        if (dishDtoList != null && !dishDtoList.isEmpty()) {
+            return R.success(dishDtoList);
+        }
+
         LambdaQueryWrapper<Dish> queryWrapper = Wrappers.lambdaQuery(Dish.class)
                 .eq(dish.getCategoryId() != null, Dish::getCategoryId, dish.getCategoryId())
                 .eq(Dish::getStatus, 1)
@@ -132,7 +150,6 @@ public class DishController {
                 .orderByDesc(Dish::getUpdateTime);
 
         List<Dish> dishList = dishService.list(queryWrapper);
-        List<DishDto> dishDtoList = new ArrayList<>();
 
         Map<Long, String> categoryNameMap = new HashMap<>();
         for (Dish item : dishList) {
@@ -154,6 +171,9 @@ public class DishController {
 
             dishDtoList.add(dishDto);
         }
+        redisCache.setCacheList(key, dishDtoList);
+        redisCache.expire(key, 60, TimeUnit.MINUTES);
+
         return R.success(dishDtoList);
     }
 }

@@ -32,7 +32,7 @@ public class UserController {
         String code = ValidateCodeUtils.generateValidateCode(6).toString();
         log.info("验证码是: {}", code);
 
-        redisCache.setCacheObject(phone,"123456",5, TimeUnit.MINUTES);
+        redisCache.setCacheObject(phone, "123456", 5, TimeUnit.MINUTES);
 
 //        session.setAttribute(phone, code);
 //        session.setAttribute(phone, "123456");
@@ -56,6 +56,8 @@ public class UserController {
         if (trueCode != null && trueCode.equals(code)) {
             User user = userService.loginOrRegister(phone);
             session.setAttribute("user", user.getId());
+
+            redisCache.deleteObject(phone);
 
             return R.success(user);
         }

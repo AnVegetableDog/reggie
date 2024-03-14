@@ -11,11 +11,7 @@ import java.util.Objects;
 
 @Slf4j
 public class AliyunSmsUtil {
-    private final String smsAccessKeyId = "LTAI5t6AC4ntMfkS2V6LciSV";
 
-    private final String smsAccessKeySecret = "o94mAmWPCsKYu71sNFjiAXwvpvFEP1";
-
-    private final String smsEndpoint = "dysmsapi.aliyuncs.com";
 
     private final String smsTemplateCode = "SMS_154950909";
 
@@ -51,7 +47,7 @@ public class AliyunSmsUtil {
             String phone,
             String code)
             throws Exception {
-        Client client = createClient(smsAccessKeyId, smsAccessKeySecret, smsEndpoint);
+        Client client = createClient("LTAI5t6AC4ntMfkS2V6LciSV", "o94mAmWPCsKYu71sNFjiAXwvpvFEP1", "dysmsapi.aliyuncs.com");
         SendSmsRequest sendSmsRequest =
                 new SendSmsRequest()
                         .setSignName(smsSignName)

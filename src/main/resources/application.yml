@@ -64,4 +64,4 @@ mybatis-plus:
       id-type: ASSIGN_ID
 
 reggie:
-  path: D:\liupiao\中南大学\我的大学\学习\瑞吉外卖-资料\1 瑞吉外卖项目\
+  path: /home/project/img

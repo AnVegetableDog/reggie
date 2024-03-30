@@ -47,7 +47,7 @@ public class AliyunSmsUtil {
             String phone,
             String code)
             throws Exception {
-        Client client = createClient("LTAI5t6AC4ntMfkS2V6LciSV", "o94mAmWPCsKYu71sNFjiAXwvpvFEP1", "dysmsapi.aliyuncs.com");
+        Client client = createClient("accesskey", "secretKey", "dysmsapi.aliyuncs.com");
         SendSmsRequest sendSmsRequest =
                 new SendSmsRequest()
                         .setSignName(smsSignName)
